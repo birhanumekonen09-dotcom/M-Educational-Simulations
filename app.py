@@ -1,106 +1,188 @@
 import streamlit as st
 import streamlit.components.v1 as components
-import numpy as np
-import plotly.express as px
 
-st.set_page_config(page_title="Educational Simulation Suite", layout="wide")
+st.set_page_config(page_title="Real-Time Educational Lab Suite", layout="wide")
 
-st.title("Interactive Educational Laboratory")
+st.title("Interactive Real-Time Science & Mathematics Laboratory")
+st.write("Adjust the parameters in the sidebar to run live, animated simulations for different subjects.")
+
 subject = st.sidebar.selectbox(
-    "Select Discipline", 
-    ["Physics (Live Pendulum Lab)", "Physics (Projectile Motion)", "Mathematics (Quadratic Functions)"]
+    "Select Lab Discipline",
+    [
+        "Physics: Wave Motion",
+        "Chemistry: Kinetic Gas Theory (Molecule Speed)",
+        "Biology: Predator-Prey Ecosystem",
+        "Economics: Market Fluctuation & Trading"
+    ]
 )
 
-if subject == "Physics (Live Pendulum Lab)":
-    st.header("Physics: Real-Time Pendulum Motion")
-    st.write("Observe real-time harmonic motion. Adjust the gravity and length parameters to see how frequency changes.")
-    
-    length = st.slider("Pendulum Length (m)", 0.5, 3.0, 1.5)
-    gravity = st.slider("Gravity Strength", 1.0, 20.0, 9.8)
+st.sidebar.markdown("---")
+st.sidebar.markdown("### Live Controls")
 
-    # Embedded HTML5/JS Real-time Animation Canvas
-    animation_html = f"""
+if subject == "Physics: Wave Motion":
+    st.header("Physics: Transverse Wave Simulation")
+    st.write("Observe wave propagation, frequency, and amplitude changes in real-time.")
+    
+    freq = st.sidebar.slider("Frequency", 1.0, 10.0, 3.0)
+    amplitude = st.sidebar.slider("Amplitude", 10.0, 80.0, 40.0)
+    
+    sim_html = f"""
     <!DOCTYPE html>
     <html>
-    <head>
-    <style>
-      body {{ background-color: #0e1117; color: white; text-align: center; font-family: sans-serif; }}
-      canvas {{ background: #1a1c23; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }}
-    </style>
-    </head>
+    <head><style>body {{ background: #0e1117; color: white; text-align: center; }} canvas {{ background: #1a1c23; border-radius: 8px; }}</style></head>
     <body>
-      <canvas id="simCanvas" width="500" height="300"></canvas>
+      <canvas id="waveCanvas" width="600" height="250"></canvas>
       <script>
-        const canvas = document.getElementById("simCanvas");
+        const canvas = document.getElementById("waveCanvas");
         const ctx = canvas.getContext("2d");
-        
-        let theta = Math.PI / 4; // Initial angle
-        let omega = 0; // Angular velocity
-        let L = {length} * 100; // Scale length to pixels
-        let g = {gravity};
-        let originX = 250;
-        let originY = 50;
-
-        function update() {{
-            // Physics calculation for pendulum (Euler-Cromer method)
-            let alpha = (-g / {length}) * Math.sin(theta);
-            omega += alpha * 0.05;
-            theta += omega * 0.05;
-
-            // Coordinates of bob
-            let x = originX + L * Math.sin(theta);
-            let y = originY + L * Math.cos(theta);
-
-            // Draw frame
+        let t = 0;
+        function draw() {{
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw string
             ctx.beginPath();
-            ctx.moveTo(originX, originY);
-            ctx.lineTo(x, y);
-            ctx.strokeStyle = "#ffffff";
+            ctx.strokeStyle = "#00cc66";
             ctx.lineWidth = 3;
+            for (let x = 0; x < canvas.width; x++) {{
+                let y = canvas.height / 2 + {amplitude} * Math.sin(x * 0.02 * {freq} + t);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }}
             ctx.stroke();
-
-            // Draw pivot
-            ctx.beginPath();
-            ctx.arc(originX, originY, 6, 0, Math.PI * 2);
-            ctx.fillStyle = "#ff4b4b";
-            ctx.fill();
-
-            // Draw bob
-            ctx.beginPath();
-            ctx.arc(x, y, 20, 0, Math.PI * 2);
-            ctx.fillStyle = "#00cc66";
-            ctx.fill();
-
-            requestAnimationFrame(update);
-        }
-        update();
+            t += 0.05;
+            requestAnimationFrame(draw);
+        }}
+        draw();
       </script>
     </body>
     </html>
     """
-    components.html(animation_html, height=350)
+    components.html(sim_html, height=280)
 
-elif subject == "Physics (Projectile Motion)":
-    st.header("Physics: Projectile Trajectory")
-    v0 = st.slider("Initial Velocity (m/s)", 1.0, 50.0, 20.0)
-    angle = st.slider("Launch Angle (degrees)", 0, 90, 45)
+elif subject == "Chemistry: Kinetic Gas Theory (Molecule Speed)":
+    st.header("Chemistry: Gas Molecule Collision & Temperature")
+    st.write("Demonstrates how raising temperature increases molecular kinetic energy and collision rates.")
     
-    theta = np.radians(angle)
-    t_flight = (2 * v0 * np.sin(theta)) / 9.81
-    t = np.linspace(0, t_flight, 100)
-    x = v0 * np.cos(theta) * t
-    y = v0 * np.sin(theta) * t - 0.5 * 9.81 * t**2
+    temp = st.sidebar.slider("Temperature (Energy)", 10, 200, 50)
     
-    fig = px.line(x=x, y=y, labels={'x': 'Distance (m)', 'y': 'Height (m)'})
-    st.plotly_chart(fig, use_container_width=True)
+    sim_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><style>body {{ background: #0e1117; color: white; text-align: center; }} canvas {{ background: #1a1c23; border-radius: 8px; }}</style></head>
+    <body>
+      <canvas id="gasCanvas" width="600" height="250"></canvas>
+      <script>
+        const canvas = document.getElementById("gasCanvas");
+        const ctx = canvas.getContext("2d");
+        let particles = [];
+        for(let i=0; i<40; i++) {{
+            particles.push({{
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * Math.sqrt({temp}),
+                vy: (Math.random() - 0.5) * Math.sqrt({temp})
+            }});
+        }}
+        function draw() {{
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {{
+                p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
+                ctx.fillStyle = "#ff4b4b";
+                ctx.fill();
+            }});
+            requestAnimationFrame(draw);
+        }}
+        draw();
+      </script>
+    </body>
+    </html>
+    """
+    components.html(sim_html, height=280)
 
-elif subject == "Mathematics (Quadratic Functions)":
-    st.header("Mathematics: Parabola Explorer")
-    a_val = st.slider("Coefficient a", -5.0, 5.0, 1.0)
-    x = np.linspace(-10, 10, 300)
-    y = a_val * x**2
-    fig = px.line(x=x, y=y)
-    st.plotly_chart(fig, use_container_width=True)
+elif subject == "Biology: Predator-Prey Ecosystem":
+    st.header("Biology: Ecosystem Population Motion Model")
+    st.write("Simulates moving agents representing predators (red) and prey (green) interacting in an environment.")
+    
+    speed_factor = st.sidebar.slider("Movement Speed", 1.0, 5.0, 2.0)
+    
+    sim_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><style>body {{ background: #0e1117; color: white; text-align: center; }} canvas {{ background: #1a1c23; border-radius: 8px; }}</style></head>
+    <body>
+      <canvas id="ecoCanvas" width="600" height="250"></canvas>
+      <script>
+        const canvas = document.getElementById("ecoCanvas");
+        const ctx = canvas.getContext("2d");
+        let agents = [];
+        for(let i=0; i<50; i++) {{
+            agents.push({{
+                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * {speed_factor}, vy: (Math.random() - 0.5) * {speed_factor},
+                type: i < 35 ? 'prey' : 'predator'
+            }});
+        }}
+        function draw() {{
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            agents.forEach(a => {{
+                a.x += a.vx; a.y += a.vy;
+                if(a.x < 0 || a.x > canvas.width) a.vx *= -1;
+                if(a.y < 0 || a.y > canvas.height) a.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(a.x, a.y, a.type=='prey'? 4 : 7, 0, Math.PI*2);
+                ctx.fillStyle = a.type=='prey' ? '#00cc66' : '#ff4b4b';
+                ctx.fill();
+            }});
+            requestAnimationFrame(draw);
+        }}
+        draw();
+      </script>
+    </body>
+    </html>
+    """
+    components.html(sim_html, height=280)
+
+elif subject == "Economics: Market Fluctuation & Trading":
+    st.header("Economics: Live Asset Price Ticker")
+    st.write("Simulates real-time market volatility driven by buyer and seller pressure.")
+    
+    volatility = st.sidebar.slider("Market Volatility", 1.0, 10.0, 4.0)
+    
+    sim_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><style>body {{ background: #0e1117; color: white; text-align: center; }} canvas {{ background: #1a1c23; border-radius: 8px; }}</style></head>
+    <body>
+      <canvas id="marketCanvas" width="600" height="250"></canvas>
+      <script>
+        const canvas = document.getElementById("marketCanvas");
+        const ctx = canvas.getContext("2d");
+        let history = [100];
+        function draw() {{
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(history.length > 100) history.shift();
+            let last = history[history.length - 1];
+            let next = last + (Math.random() - 0.48) * {volatility};
+            history.push(next);
+            
+            ctx.beginPath();
+            ctx.strokeStyle = "#3399ff";
+            ctx.lineWidth = 3;
+            let step = canvas.width / 100;
+            history.forEach((val, idx) => {{
+                let x = idx * step;
+                let y = canvas.height - (val * 2);
+                if(idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }});
+            ctx.stroke();
+            setTimeout(() => requestAnimationFrame(draw), 100);
+        }}
+        draw();
+      </script>
+    </body>
+    </html>
+    """
+    components.html(sim_html, height=280)
