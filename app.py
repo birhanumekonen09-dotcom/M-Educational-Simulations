@@ -4,7 +4,7 @@ import streamlit as st
 # Page Configuration
 st.set_page_config(
     page_title="BioLab Sim Hub - Interactive Virtual Labs",
-    page_icon="🧬",
+    page_icon="1789826959527.png",
     layout="wide",
 )
 
@@ -159,7 +159,6 @@ elif module == "3. Diffusion Simulator":
   temp = st.slider("Temperature (°C):", 0, 100, 25)
   molecular_weight = st.slider("Molecular Weight (Daltons):", 10, 500, 50)
 
-  # Simulated calculation based on Graham's law / kinetic energy approximation
   diffusion_speed = round((temp + 273) ** 0.5 / (molecular_weight ** 0.5) * 10, 2)
 
   col1, col2 = st.columns(2)
